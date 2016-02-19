@@ -52,7 +52,7 @@ class GossipSolver(object):
         edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
             each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
-            edges_seq is not None, will be overwritten by edges_seq.shape[0].
+            edges_seq is not None, will be overwritten by edges_seq length.
         is_asynchronous (Optional[bool]): Indicates whether or not the solver is
             performing in an synchronous (False) or asynchronous (True)
             setting. Default value is False.
@@ -60,6 +60,27 @@ class GossipSolver(object):
             stored in the historic. Default value is 1.
         target (Optional[float]): Target value of the gossip algorithm. Used for
             computing error.
+
+    Attributes:
+        init_values (numpy.array[float]): Values initially stored at each node.
+        current_estimates (numpy.array[float]): Each node estimates of the target
+            value at the current iteration.
+        n_agents (int): Number of nodes in the network. Multisample solvers are
+            not implemented yet so this also corresponds to the sample size.
+        edges_seq (Sequence[Tuple[int]]): Sequence of edges picked at each
+            iteration.
+        n_iter_max (int): Number of iterations.
+        saving_step (int): Interval at which current_estimates are stored in
+            historic (see previous_estimates).
+        previous_estimates (numpy.array[float]): Historic of the nodes estimates.
+        is_asynchronous (bool): Indicates whether or not the solver is performing
+            in an synchronous (False) or asynchronous (True) setting.
+        current_iteration ([numpy.array[int]]): Number of times each node has
+            been picked. If solver performs in synchronous setting, should be
+            equal to global_iteration at every index.
+        global_iteration (int): Number of edges picked so far.
+        target (float): Target value of the gossip algorithm. Used for computing
+            error.
 
     """
 
@@ -75,7 +96,6 @@ class GossipSolver(object):
         self.init_values = h(x)
         self.current_estimates = self.init_values.copy()
         self.n_agents = x.shape[0]
-        self.saving_step = saving_step
 
         self.edges_seq = edges_seq
         if self.edges_seq is None:
@@ -184,7 +204,7 @@ class AveragingGossipSolver (GossipSolver):
 
     Remarks:
         This algorithm is by design a fully asynchronous gossip algorithm so
-        self.is_asynchronous is set by default to True.
+        is_asynchronous is set by default to True.
 
     """
 
@@ -252,9 +272,18 @@ class U1GossipSolver (GossipSolver):
             function h and the sample x: h_gram[i, j] = h(x[i], x[j]). If not
             assigned, will be computed from h and x.
 
+    Attributes:
+        ind_x (numpy.array[int]): Indexes of primary observation stored at each
+            node.
+        ind_y (numpy.array[int]): Indexes of auxiliary observation stored at each
+            node.
+        h_gram (numpy.array[float]): Gram matrix associated to the function h and
+            the sample: h_gram[i, j] = h(init_values[i], init_values[j]). If not
+            assigned, will be computed from h and x, when h is provided.
+
     Remarks:
         This algorithm is by design a synchronous gossip algorithm so
-        self.is_asynchronous is set by default to False.
+        is_asynchronous is set by default to False.
 
     """
 
@@ -372,6 +401,10 @@ class U2GossipSolver (U1GossipSolver):
         h_gram (Optional[numpy.array[float]]): Gram matrix associated to the
             function h and the sample x: h_gram[i, j] = h(x[i], x[j]). If not
             assigned, will be computed from h and x.
+
+    Attributes:
+        edges_seq2 (Sequence[Tuple[int]]): Second sequence of edges picked at
+            each iteration.
 
     Remarks:
         This algorithm is by design a synchronous gossip algorithm so
@@ -508,6 +541,10 @@ class GoStaSolver (U1GossipSolver):
             assigned, will be computed from h and x.
         asynchronous_weights (Optional[numpy.array[float]]): Weights used in the
             asynchronous setting. Useless in synchronous setting.
+
+    Attributes:
+        w (numpy.array[float]): Weights used in the asynchronous setting. Not
+            used if is_asynchronous = False.
 
     Remarks:
         This algorithm can perform either in a synchronous or an asynchronous
