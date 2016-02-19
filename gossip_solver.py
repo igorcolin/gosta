@@ -47,8 +47,8 @@ class GossipSolver(object):
         x (numpy.array): Observations sample. If n is the sample size
             and d is the observations space dimension, then x.shape should be
             (n, d).
-        h (Optional[Callable[[...], float]]): Transformation applied to the
-            initial sample, usually real-valued. Default value is identity.
+        h (Optional[Callable[[numpy.array], float]]): Transformation applied to
+            the initial sample, usually real-valued. Default value is identity.
         edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
             each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
