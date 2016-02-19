@@ -1,7 +1,7 @@
 """Various gossip algorithms.
 
 This module contains implementation of several gossip algorithms for computing
-the sample mean.
+the sample mean [1], partials U-statistics [2] or complete U-statistics [2, 3].
 
 Standard Gossip Averaging ([1]): Sample mean estimates are initialized to the
 current observation. At each time step, selected nodes average their estimates.
