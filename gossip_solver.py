@@ -47,10 +47,10 @@ class GossipSolver(object):
         x (numpy.array): Observations sample. If n is the sample size
             and d is the observations space dimension, then x.shape should be
             (n, d).
-        h (Optional[function]): Transformation applied to the initial sample,
-            usually real-valued. Default value is identity.
-        edges_seq (Optional[np.array(Tuple)]): Sequence of edges picked at each
-        iteration.
+        h (Optional[Callable[[...], float]]): Transformation applied to the
+            initial sample, usually real-valued. Default value is identity.
+        edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
+            each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
             edges_seq is not None, will be overwritten by edges_seq.shape[0].
         is_asynchronous (Optional[bool]): Indicates whether or not the solver is
@@ -107,7 +107,8 @@ class GossipSolver(object):
         """Perform one step of the gossip algorithm using the provided edge.
 
         Args:
-            edge (Tuple[int]): Edge picked at the current iteration.
+            i (int): First edge picked at current iteration.
+            j (int): Second edge picked at current iteration.
         
         """
         
@@ -117,7 +118,7 @@ class GossipSolver(object):
         """Reset the algorithm and set a new edges sequence.
 
         Args:
-            new_seq (np.array([Tuple])): New sequence of edges to be picked.
+            new_seq (Sequence[Tuple[int]])): New sequence of edges to be picked.
 
         Remarks: 
             The sequence length new_seq.shape[0] will overwrite self.n_iter_max.
@@ -166,10 +167,11 @@ class AveragingGossipSolver (GossipSolver):
     Args:
         x (numpy.array): Observations sample. If n is the sample size and d is
             the observations space dimension, then x.shape should be (n, d).
-        h (Optional[function]): Transformation applied to the initial sample,
-            usually real-valued. Default value is identity.
-        edges_seq (Optional[np.array(Tuple)]): Sequence of edges picked at each
-            iteration.
+        h (Optional[Callable[[numpy.array], float]]): Transformation
+            applied to the initial sample, usually real-valued. Default value is
+            identity. Argument type is identical to x type.
+        edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
+            each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
             edges_seq is not None, will be overwritten by edges_seq.shape[0].
         is_asynchronous (Optional[bool]): Indicates whether or not the solver is
@@ -212,7 +214,8 @@ class AveragingGossipSolver (GossipSolver):
         Current estimates of nodes i and j are averaged.
 
         Args:
-            edge (Tuple[int]): Edge picked at the current iteration.
+            i (int): First edge picked at the current iteration.
+            j (int): Second edge picked at the current iteration.
         
         """
 
@@ -229,9 +232,12 @@ class U1GossipSolver (GossipSolver):
     Args: 
         x (numpy.array): Observations sample. If n is the sample size and d is
             the observations space dimension, then x.shape should be (n, d).
-        h (function): Pairwise function associated to the degree-2
-            U-statistics.  edges_seq (Optional[np.array(Tuple)]): Sequence of
-            edges picked at each iteration.
+        h (Callable[[numpy.array, numpy.array], numpy.array[float]]): Pairwise
+            function associated to the degree-2 U-statistics. Arguments types
+            are identical to x type. Returned numpy.array is a one dimensional
+            array with size equals to arguments size over the first coordinate.
+        edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
+            each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
             edges_seq is not None, will be overwritten by edges_seq.shape[0].
         is_asynchronous (Optional[bool]): Indicates whether or not the solver is
@@ -242,7 +248,7 @@ class U1GossipSolver (GossipSolver):
         target (Optional[float]): Target values of the gossip algorithm. Used
             for computing error. If not assigned, will be set to the partial sums
             values.
-        h_gram (Optional[np.array(dtype=float)]): Gram matrix associated to the
+        h_gram (Optional[numpy.array[float]]): Gram matrix associated to the
             function h and the sample x: h_gram[i, j] = h(x[i], x[j]). If not
             assigned, will be computed from h and x.
 
@@ -288,11 +294,11 @@ class U1GossipSolver (GossipSolver):
         """Reset the algorithm and set a new edges sequence.
 
         Args:
-            new_seq (np.array([Tuple])): New sequence of edges to be picked.
+            new_seq (Sequence[Tuple[int]]): New sequence of edges to be picked.
 
         Remarks: 
-            The sequence length new_seq.shape[0] will overwrite
-            self.n_iter_max. Other parameters will be preserved.
+            The sequence length will overwrite self.n_iter_max. Other parameters
+            will be preserved.
 
         """
 
@@ -343,14 +349,16 @@ class U2GossipSolver (U1GossipSolver):
     Args:
         x (numpy.array): Observations sample. If n is the sample size and d is
             the observations space dimension, then x.shape should be (n, d).
-        h (function): Pairwise function associated to the degree-2
-            U-statistics.
-        edges_seq (Optional[np.array(Tuple)]): Sequence of edges picked at each
-             iteration.
+        h (Callable[[numpy.array, numpy.array], numpy.array[float]]): Pairwise
+            function associated to the degree-2 U-statistics. Arguments types
+            are identical to x type. Returned numpy.array is a one dimensional
+            array with size equals to arguments size over the first coordinate.
+        edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
+            each iteration.
+        edges_seq2 (Optional[Sequence[Tuple[int]]]): Second sequence of edges
+            picked at each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
             edges_seq is not None, will be overwritten by edges_seq.shape[0].
-        edges_seq2 (Optional[np.array(Tuple)]): Second sequence of edges picked
-            at each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
             edges_seq is not None, will be overwritten by edges_seq.shape[0].
         is_asynchronous (Optional[bool]): Indicates whether or not the solver is
@@ -361,7 +369,7 @@ class U2GossipSolver (U1GossipSolver):
         target (Optional[float]): Target values of the gossip algorithm. Used
             for computing error. If not assigned, will be set to the partial sums
             values.
-        h_gram (Optional[np.array(dtype=float)]): Gram matrix associated to the
+        h_gram (Optional[numpy.array[float]]): Gram matrix associated to the
             function h and the sample x: h_gram[i, j] = h(x[i], x[j]). If not
             assigned, will be computed from h and x.
 
@@ -398,14 +406,14 @@ class U2GossipSolver (U1GossipSolver):
         """Reset the algorithm and set a new edges sequence.
 
         Args:
-            new_seq (np.array(dtype=Tuple)): New sequence of edges to be picked
+            new_seq (Sequence[Tuple[int]]): New sequence of edges to be picked
                 for primary observations swapping.
-            new_seq2 (np.array(dtype=Tuple)): New sequence of edges to be picked
+            new_seq2 (Sequence[Tuple[int]]): New sequence of edges to be picked
                 for auxiliary observations swapping.
 
         Remarks:
-            The sequence length new_seq.shape[0] will overwrite
-            self.n_iter_max. Other parameters will be preserved.
+            The sequence length will overwrite self.n_iter_max. Other parameters
+            will be preserved.
 
         """
 
@@ -479,10 +487,12 @@ class GoStaSolver (U1GossipSolver):
     Args: 
         x (numpy.array): Observations sample. If n is the sample size and d is
             the observations space dimension, then x.shape should be (n, d).
-        h (function): Pairwise function associated to the degree-2
-            U-statistics.
-        edges_seq (Optional[np.array(Tuple)]): Sequence of edges picked at each
-            iteration.
+        h (Callable[[numpy.array, numpy.array], numpy.array[float]]): Pairwise
+            function associated to the degree-2 U-statistics. Arguments types
+            are identical to x type. Returned numpy.array is a one dimensional
+            array with size equals to arguments size over the first coordinate.
+        edges_seq (Optional[Sequence[Tuple[int]]]): Sequence of edges picked at
+            each iteration.
         n_iter_max (Optional[int]): Number of iterations. Default value is 1. If
             edges_seq is not None, will be overwritten by edges_seq.shape[0].
         is_asynchronous (Optional[bool]): Indicates whether or not the solver is
@@ -493,11 +503,11 @@ class GoStaSolver (U1GossipSolver):
         target (Optional[float]): Target values of the gossip algorithm. Used
             for computing error. If not assigned, will be set to the partial sums
             values.
-        h_gram (Optional[np.array(dtype=float)]): Gram matrix associated to the
+        h_gram (Optional[numpy.array[float]]): Gram matrix associated to the
             function h and the sample x: h_gram[i, j] = h(x[i], x[j]). If not
             assigned, will be computed from h and x.
-        asynchronous_weights (Optional[np.array(dtype=float)]): Weights used in
-            the asynchronous setting. Useless in synchronous setting.
+        asynchronous_weights (Optional[numpy.array[float]]): Weights used in the
+            asynchronous setting. Useless in synchronous setting.
 
     Remarks:
         This algorithm can perform either in a synchronous or an asynchronous
@@ -535,11 +545,11 @@ class GoStaSolver (U1GossipSolver):
         """Reset the algorithm and set a new edges sequence.
 
         Args:
-            new_seq (np.array(dtype=Tuple)): New sequence of edges to be picked.
+            new_seq (Sequence[Tuple]): New sequence of edges to be picked.
 
         Remarks:
-            The sequence length new_seq.shape[0] will overwrite
-            self.n_iter_max. Other parameters will be preserved.
+            The sequence length will overwrite self.n_iter_max. Other parameters
+            will be preserved.
 
         """
 
